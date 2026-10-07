@@ -1,8 +1,9 @@
 PYTHON ?= python3
 VENV := api/.venv
 VPIP := $(VENV)/bin/pip
+PORT ?= 8000
 
-.PHONY: bootstrap install venv dev api web migrate
+.PHONY: bootstrap install venv free-port dev api web migrate
 
 bootstrap: install ## install the engine, the UI, and app deps
 
@@ -16,8 +17,12 @@ venv:
 dev: ## run the API and the web app together
 	$(MAKE) -j2 api web
 
-api: ## run the extraction API (http://localhost:8000)
-	cd api && .venv/bin/uvicorn main:app --reload --reload-include .env --port 8000
+free-port: ## stop whatever is listening on $(PORT), if anything
+	-@PIDS="$$(lsof -ti:$(PORT) 2>/dev/null)"; \
+	if [ -n "$$PIDS" ]; then echo "port $(PORT) in use — stopping $$PIDS"; kill -9 $$PIDS 2>/dev/null || true; sleep 1; fi
+
+api: free-port ## run the extraction API (http://localhost:$(PORT)); frees the port first if in use
+	cd api && .venv/bin/uvicorn main:app --reload --reload-include .env --port $(PORT)
 
 web: ## run the web app (http://localhost:3000)
 	pnpm -C frontend dev
