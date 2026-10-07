@@ -7,3 +7,6 @@ __pycache__/
 dist/
 build/
 .venv/
+node_modules/
+.next/
+*.tsbuildinfo

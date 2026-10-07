@@ -1,11 +1,33 @@
 # docextract
 
-A **domain-free** LangChain extraction engine. You supply the output schema, the
-domain prompt, and a record mapper; the engine reads a document (PDF / image /
-text), runs the model, caches the result by content × recipe, and serves it.
+A **domain-free** document-extraction stack: a Python engine + a review UI. You
+supply the schema, the domain prompt, a record mapper, and a `DomainConfig`; the
+stack reads a document (PDF / image / text), runs the model, caches the result by
+content × recipe, and lets an operator review, correct, and approve it.
 
-It carries no domain knowledge — no invoice fields, no shipping vocabulary. That
-belongs to the consumer (see [`template/domain/`](template/domain/)).
+Neither half carries domain knowledge — no invoice fields, no shipping
+vocabulary. That belongs to the consumer.
+
+## Monorepo layout
+
+| Path | What |
+|---|---|
+| `src/docextract/` | the **engine** (pip: `docextract`) — extraction, cache, corrections, document store, router factory, migrations |
+| `ui/` | `@docextract/ui` — the **generic review UI** (React) |
+| `template/app/` | a **starter app** (FastAPI + Next.js) wired to both |
+| `template/domain/` | a **backend domain scaffold** (schema + prompt + mapper + wiring) |
+| `scripts/new-domain.sh` | the hook — copy the starter into a new project |
+| `tests/` | engine tests |
+
+## Start a domain
+
+```sh
+scripts/new-domain.sh ../my-domain
+cd ../my-domain && make bootstrap && make dev
+```
+
+Then fill in `api/domain/` (backend) and `frontend/app/page.tsx` (UI config). See
+[`AGENTS.md`](AGENTS.md) and [`template/app/AGENTS.md`](template/app/AGENTS.md).
 
 ## Install
 

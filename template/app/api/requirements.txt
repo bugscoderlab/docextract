@@ -1,0 +1,16 @@
+# Domain-free extraction engine. Local monorepo path for development; once the
+# engine repo is published, pin it instead:
+#   docextract @ git+https://github.com/bugscoderlab/docextract.git@v0.1.0
+-e ../..
+
+fastapi
+uvicorn
+python-multipart
+sqlmodel
+alembic
+psycopg2-binary
+python-dotenv
+langchain
+langchain-google-genai
+pytest
+httpx

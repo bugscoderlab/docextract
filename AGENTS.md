@@ -1,10 +1,23 @@
 # AGENTS.md — adding a domain to docextract
 
-This repo is the **domain-free** extraction engine. To use it for a real project
-you clone it (or depend on it) and add **one domain module**. The engine never
-gains domain vocabulary; everything specific lives in that module.
+This is a **domain-free monorepo**: the Python engine (`src/docextract/`), the
+generic review UI (`ui/`), and a starter app (`template/app/`). To use it for a
+real project, run `scripts/new-domain.sh ../my-domain`, then add **one domain
+module** (backend) and a `DomainConfig` (frontend). Neither half ever gains
+domain vocabulary.
 
-## The seam
+## Start a domain
+
+```sh
+scripts/new-domain.sh ../my-domain
+cd ../my-domain && make bootstrap && make dev
+```
+
+Fill in `api/domain/` (schema, prompt, record mapper, wiring) and
+`frontend/app/page.tsx` (the `DomainConfig`: item columns, checks, tabs). See
+[`template/app/AGENTS.md`](template/app/AGENTS.md).
+
+## The backend seam
 
 A domain is four things, plus wiring. Copy [`template/domain/`](template/domain/)
 and fill it in:
