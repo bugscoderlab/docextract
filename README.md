@@ -1,123 +1,172 @@
 # docextract
 
-A **domain-free** document-extraction stack: a Python engine + a review UI. You
-supply the schema, the domain prompt, a record mapper, and a `DomainConfig`; the
-stack reads a document (PDF / image / text), runs the model, caches the result by
-content × recipe, and lets an operator review, correct, and approve it.
+A **domain-free** document-extraction stack: a Python **engine** + a review
+**UI**. You supply the schema, the domain prompt, a record mapper, and a
+`DomainConfig`; the stack reads a document (PDF / image / text), runs the model,
+caches the result by content × recipe, and lets an operator review, correct, and
+approve it.
 
 Neither half carries domain knowledge — no invoice fields, no shipping
 vocabulary. That belongs to the consumer.
 
-## Monorepo layout
+---
 
-| Path | What |
+## Quick start — a new domain project
+
+The fastest path: clone the stack, scaffold a project from the starter, run it.
+
+```sh
+git clone https://github.com/bugscoderlab/docextract.git
+cd docextract
+scripts/new-domain.sh ../my-domain     # copy template/app, repoint its deps
+cd ../my-domain
+make bootstrap                         # installs the engine + UI + app deps
+make dev                               # API on :8000, web on :3000
+```
+
+Then fill in the domain:
+
+| File | What |
 |---|---|
-| `src/docextract/` | the **engine** (pip: `docextract`) — extraction, cache, corrections, document store, router factory, migrations |
-| `ui/` | `@docextract/ui` — the **generic review UI** (React) |
-| `template/app/` | a **starter app** (FastAPI + Next.js) wired to both |
-| `template/domain/` | a **backend domain scaffold** (schema + prompt + mapper + wiring) |
-| `scripts/new-domain.sh` | the hook — copy the starter into a new project |
-| `tests/` | engine tests |
+| `api/domain/schema.py` | the output shape (Pydantic) |
+| `api/domain/prompt.py` | the domain rules |
+| `api/domain/record.py` | map the schema to `{ fields, items, meta }` |
+| `frontend/app/page.tsx` | the `DomainConfig` (item columns, checks, tabs) |
 
-## Start a domain
+> This repo is a **template**: you can also click **Use this template** on GitHub
+> to get a fresh copy of the monorepo.
 
-```sh
-scripts/new-domain.sh ../my-domain
-cd ../my-domain && make bootstrap && make dev
-```
+---
 
-Then fill in `api/domain/` (backend) and `frontend/app/page.tsx` (UI config). See
-[`AGENTS.md`](AGENTS.md) and [`template/app/AGENTS.md`](template/app/AGENTS.md).
-
-## Install
+## Use the engine alone (Python)
 
 ```sh
-pip install docextract            # core
-pip install "docextract[providers,sqlmodel,api,migrations]"   # typical app
+pip install "docextract[providers,sqlmodel,api,migrations] @ git+https://github.com/bugscoderlab/docextract.git"
 ```
-
-Or, as a git dependency in another project's `requirements.txt`:
-
-```requirements
-docextract @ git+https://github.com/<owner>/docextract.git@v0.1.0
-# or, for local development:
-# -e ../docextract
-```
-
-## Use
 
 ```python
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from docextract import Extractor
 
-class MyModel(BaseModel):
-    title: str = ""
-    total: str | None = None
+class MyDoc(BaseModel):
+    fields: dict[str, str] = Field(default_factory=dict)
+    items: list[dict] = Field(default_factory=list)
 
-DOMAIN_PROMPT = """You extract ACME receipts. Put the header in `fields` ..."""
+DOMAIN_PROMPT = "You extract … documents. Put header values in `fields` …"
 
-extractor = Extractor(MyModel, domain_prompt=DOMAIN_PROMPT)
-result = extractor.extract("receipt.pdf")   # -> ExtractionResult[MyModel]
-result.data      # -> MyModel | None
-result.cached    # -> served from cache?
-result.fingerprint
+extractor = Extractor(MyDoc, domain_prompt=DOMAIN_PROMPT)
+result = extractor.extract("doc.pdf")     # -> ExtractionResult[MyDoc]
+result.data        # MyDoc | None
+result.cached      # served from cache?
+result.fingerprint # the recipe identity
 ```
 
 Serve it over HTTP with the router factory:
 
 ```python
-from docextract.domain import Domain
 from docextract import build_router
+from docextract.domain import Domain
 
-domain = Domain(schema=MyModel, prompt=DOMAIN_PROMPT, record=lambda m: m.model_dump())
+domain = Domain(schema=MyDoc, prompt=DOMAIN_PROMPT, record=lambda d: d.model_dump())
 app.include_router(build_router(domain))
 ```
 
-Wire a database (the engine never imports one):
+Point it at a database (the engine never imports one):
 
 ```python
-from docextract import SQLModelCache, SQLModelCorrectionStore, build_document_store
-from sqlmodel import create_engine
+from docextract import Extractor, SQLModelCache, SQLModelCorrectionStore, build_document_store
 
-engine = create_engine(DATABASE_URL)
 domain = Domain(
-    schema=MyModel,
-    prompt=DOMAIN_PROMPT,
-    record=lambda m: m.model_dump(),
+    schema=MyDoc, prompt=DOMAIN_PROMPT, record=lambda d: d.model_dump(),
     build_document_store=build_document_store,
-    build_extractor=lambda: Extractor(MyModel, cache=SQLModelCache(engine),
+    build_extractor=lambda: Extractor(MyDoc, cache=SQLModelCache(engine),
                                       store=build_document_store(), domain_prompt=DOMAIN_PROMPT),
     build_correction_store=lambda: SQLModelCorrectionStore(engine),
 )
 ```
 
-## Layout
+---
 
-| Module | Responsibility |
-|---|---|
-| `config.py` | `ExtractionConfig` — provider, model, temperature, limits (from env) |
-| `providers.py` | `build_chat_model()` — the only file that touches LangChain |
-| `result.py` | `ExtractionResult`, `source_hash` (content), `fingerprint` (recipe) |
-| `extractor.py` | `Extractor(schema, …, domain_prompt=…)` — the entry point |
-| `prompts.py` | generic `BASE_PROMPT` + `compose_system_prompt()` |
-| `loaders.py` | source → LangChain messages |
-| `domain.py` | `Domain` — the descriptor the router factory consumes |
-| `router.py` | `build_router(domain)` — the FastAPI surface |
-| `cache_store.py` / `cache_sqlmodel.py` | content-addressed Extraction cache |
-| `corrections.py` / `corrections_sqlmodel.py` | append-only Correction / Revision log |
-| `document_store.py` / `document_store_s3.py` | source-Document bytes by content hash |
-| `money.py` | integer minor-unit money |
-| `mime.py` | MIME helpers |
-| `migrations/` | Alembic scripts for the engine's tables |
-
-## Extending with a domain
-
-See [`AGENTS.md`](AGENTS.md) and copy [`template/domain/`](template/domain/):
-define the schema, the domain prompt, the record mapper, and the wiring.
-
-## Tests
+## Use the UI alone (React / Next.js)
 
 ```sh
-pip install -e ".[dev]"
-pytest
+pnpm add "github:bugscoderlab/docextract#path:ui"
+```
+
+```tsx
+"use client";
+import { ReviewShell, type DomainConfig } from "@docextract/ui";
+import "@docextract/ui/styles.css";
+
+const domain: DomainConfig = {
+  apiBaseUrl: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
+  itemColumns: [
+    { key: "code", label: "Code" },
+    { key: "description", label: "Description" },
+    { key: "qty", label: "Qty", numeric: true },
+    { key: "amount_minor", label: "Amount", numeric: true, money: true },
+  ],
+  // checks: (record) => [{ level: "ok", text: "…" }],
+  // workbookTabs: [{ id, label, columns, rows }],
+  exportName: "workbook",
+};
+
+export default function Page() {
+  return <ReviewShell domain={domain} />;
+}
+```
+
+In `next.config.ts`, transpile the package source:
+
+```ts
+const nextConfig = { transpilePackages: ["@docextract/ui"] };
+```
+
+And copy the PDF worker into `public/`:
+
+```sh
+cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/
+```
+
+---
+
+## The record contract
+
+The backend record the UI reads must carry:
+
+```ts
+{ fields: Record<string, string>, items: Array<Record<string, unknown>>, meta?: Record<string, unknown> }
+```
+
+- `fields` → the editable header grid
+- `items` → the editable table (columns from `domain.itemColumns`)
+- `meta` → free-form; `meta.label` titles the document, `meta.preview` is a
+  fallback preview URL
+
+Money is not a domain: store monetary values as **integer minor units**
+(`docextract.money.to_minor_units`), and mark the column `money: true`.
+
+---
+
+## Monorepo layout
+
+| Path | What |
+|---|---|
+| `src/docextract/` | the **engine** (pip: `docextract`) |
+| `ui/` | `@docextract/ui` — the **generic review UI** |
+| `template/app/` | a **starter app** (FastAPI + Next.js) wired to both |
+| `template/domain/` | a **backend domain scaffold** |
+| `scripts/new-domain.sh` | scaffold a new project from the starter |
+| `tests/` | engine tests |
+
+See [`AGENTS.md`](AGENTS.md) and [`template/app/AGENTS.md`](template/app/AGENTS.md)
+for the domain-adding checklist.
+
+---
+
+## Develop this repo
+
+```sh
+pip install -e ".[dev]" && pytest          # engine tests (73)
+cd ui && pnpm install && pnpm typecheck    # UI typecheck
 ```
