@@ -59,10 +59,11 @@ table (columns from `domain.itemColumns`); `meta` is free-form (e.g.
 | field | meaning |
 |---|---|
 | `apiBaseUrl` | the extraction API base (`/extract/*`) |
+| `navLink` | optional header link to a companion page (e.g. document types) |
 | `engineLabel` | fixed header pill; omit to read `/extract/config` |
 | `actor` | credited on a revision (default `operator`) |
 | `labels` | titles/copy |
-| `itemColumns` | editable columns of each item row |
+| `itemColumns` | editable columns of each item row (all-empty columns are hidden per document) |
 | `checks(record)` | domain validation rows (`ok`/`warn`/`err`) |
 | `workbookTabs` | workbook tabs; default is a single "Records" tab |
 | `exportName` | export file base name |

@@ -1,0 +1,18 @@
+# local secrets + environments
+.env
+api/.env
+api/.venv/
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# node
+node_modules/
+frontend/.next/
+frontend/tsconfig.tsbuildinfo
+
+# app data
+data/
+*.db

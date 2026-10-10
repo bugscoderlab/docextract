@@ -17,6 +17,16 @@ and `@docextract/ui` (frontend). Keep domain words here — never in the engine.
    `itemColumns`, `checks`, `workbookTabs`.
 4. `make dev`, then verify.
 
+## What the starter already ships
+
+- **`/document-types`** (`frontend/app/document-types/` +
+  `api/routers/document_types.py`): a settings page for document categories,
+  with the saved documents of each category. Types start empty — define them in
+  the UI. The listing reads stored extraction results (the engine's
+  `extraction_cache`) and matches a record's `doc_type` / `type_label`, so keep
+  those fields on the schema. The workbench header links over via
+  `DomainConfig.navLink`.
+
 ## Contract
 
 The backend record the UI reads is `{ fields, items, meta }`. `fields` → the

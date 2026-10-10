@@ -1,5 +1,5 @@
 /* ============================================================
-   Invoice Scanner — workbench
+   Docextract UI — review workbench
    Warm chrome: plum ink, burnt-orange accent, teal state.
    Trust mechanics (receipts, struck corrections, state marks)
    are behavior, not theme.
@@ -104,9 +104,7 @@ header {
 .step.done .dot { background: var(--ok-soft); border-color: transparent; color: var(--ok); }
 .step-sep { color: var(--line-2); }
 .hdr-right { margin-left: auto; display: flex; gap: 10px; align-items: center; }
-.hdr-ship { margin-left: auto; font-size: 12.5px; color: var(--ink-2); display: flex; align-items: center; gap: 8px; }
-.hdr-ship label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); }
-.hdr-ship select { max-width: 250px; }
+.hdr-link { text-decoration: none; font-size: 12.5px; padding: 7px 14px; }
 
 /* form controls */
 select, input[type="number"] {
@@ -347,7 +345,6 @@ table.lines { width: 100%; border-collapse: collapse; margin-top: 12px; font-siz
 .xls td.xls-plain { border: none; padding: 3px 7px; color: var(--ink-2); }
 .xls .hdr th { background: #4472c4; color: #fff; font-size: 10.5px; text-transform: none; letter-spacing: 0; }
 .xls .legend td { background: #d9e1f2; font-weight: 700; text-align: center; }
-.xls .ship { background: #f2f6fc; font-weight: 600; }
 .xls .pre { white-space: pre-line; }
 .xls .num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .xls .xsp { width: 8px; background: #eef0f5; padding: 0; }
@@ -441,41 +438,50 @@ body.annotating, body.annotating * { cursor: crosshair !important; }
 .p2-est table.xls { flex: 1; min-width: 0; width: auto; table-layout: auto; }
 .p2 .p2-siderow td { background: #fdf7ec; }
 
-/* ---------- save shipment + saved shipments page (user-built flows) ---------- */
-.save-ship {
-  margin-top: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-  padding: 16px 18px; box-shadow: var(--shadow-sm);
-  display: flex; flex-direction: column; gap: 12px;
+/* ---------- document types page ---------- */
+.doc-types-layout { display: grid; grid-template-columns: minmax(320px, 420px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.dt-intro { color: var(--ink-3); font-size: 12.5px; }
+.doc-type-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-sm); overflow: hidden; }
+.dt-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 14px 10px; }
+.dt-panel-head h3, .dt-doc-head h3 { font-size: 14px; font-weight: 700; }
+.dt-panel-head .btn-ghost { padding: 7px 12px; font-size: 12px; }
+.dt-type-list { display: flex; flex-direction: column; gap: 8px; padding: 4px 14px 14px; }
+.dt-type-option {
+  display: flex; flex-direction: column; gap: 3px; width: 100%; text-align: left;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  color: var(--ink); font-weight: 400;
 }
-.save-ship .ss-head { display: flex; flex-direction: column; gap: 4px; }
-.save-ship h3 { font-size: 14px; font-weight: 700; }
-.save-ship .ss-sub { font-size: 12.5px; color: var(--ink-2); line-height: 1.6; max-width: 90ch; }
-.save-ship .ss-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.save-ship label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); }
-.save-ship input[type="text"] {
-  font: inherit; font-size: 13px; padding: 8px 11px; min-width: 220px;
-  border: 1px solid var(--line-2); border-radius: 8px; background: #fff; color: var(--ink);
+.dt-type-option:hover { background: var(--panel-2); border-color: var(--line-2); }
+.dt-type-option.on { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+.dt-type-name { font-size: 13px; font-weight: 650; }
+.dt-type-remark { font-size: 12px; color: var(--ink-3); line-height: 1.45; }
+.dt-muted { color: var(--ink-3); font-size: 12.5px; padding: 8px 2px; }
+.dt-form { border-top: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.dt-field { display: flex; flex-direction: column; gap: 5px; }
+.dt-field label { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.dt-field input[type="text"], .dt-field textarea {
+  font: inherit; font-size: 13px; padding: 9px 11px; border: 1px solid var(--line-2);
+  border-radius: 8px; background: #fff; color: var(--ink); resize: vertical;
 }
-.save-ship input[type="text"]:hover { border-color: var(--ink-3); }
-.save-ship input[type="text"]:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
-.ss-summary { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); flex: 1; min-width: 160px; }
-#btn-save-ship { margin-left: auto; }
-.save-ship .ss-db { border-top: 1px solid var(--line); padding-top: 12px; }
-.save-ship .ss-db .ss-summary { font-family: inherit; }
+.dt-field input:hover, .dt-field textarea:hover { border-color: var(--ink-3); }
+.dt-field input:focus, .dt-field textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+.dt-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.form-error { background: var(--err-soft); color: var(--err); border: 1px solid #f2c3cc; border-radius: 8px; padding: 9px 11px; font-size: 12.5px; }
+.doc-type-documents { min-width: 0; }
+.dt-doc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.dt-doc-head p { color: var(--ink-3); font-size: 12.5px; margin-top: 3px; }
+.dt-documents td:first-child { white-space: normal; min-width: 230px; }
+.dt-doc-sub { display: block; color: var(--ink-3); font-size: 11.5px; margin-top: 2px; }
 
-/* ---------- saved shipments (its own page: shipments.html) ---------- */
-#ship { display: none; margin-top: 26px; }
-body.shipspage #ship { display: block; }
-body.shippage #ship { display: block; }                 /* legacy in-page toggle */
-body.shippage #review, body.shippage #wb { display: none; }
-#ship .wb-head { margin-bottom: 14px; }
-#ship .ship-list td b { font-weight: 650; }
+@media (max-width: 900px) {
+  .doc-types-layout { grid-template-columns: 1fr; }
+}
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
   main { padding: 16px 14px 60px; }
   header { padding: 10px 14px; gap: 12px; }
-  .hdr-ship, .hdr-right { margin-left: 0; }
+  .hdr-right { margin-left: 0; }
   .split { grid-template-columns: 1fr; }
   .split-grip { display: none; }
   .doc-view { border-bottom: 1px solid var(--line); }
@@ -486,7 +492,6 @@ body.shippage #review, body.shippage #wb { display: none; }
   #receipt-stack { left: 16px; right: 16px; }
   .receipt { width: 100%; }
   .rate-box { margin-left: 0; }
-  #btn-save-ship { margin-left: 0; width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

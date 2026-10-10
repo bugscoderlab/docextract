@@ -1,12 +1,12 @@
 "use client";
 
 import { ReviewShell, type DomainConfig } from "@docextract/ui";
-import "@docextract/ui/styles.css";
 
 // TODO: describe your domain. The record must carry { fields, items, meta }.
 const domain: DomainConfig = {
   apiBaseUrl: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
   labels: { title: "Docextract" },
+  navLink: { href: "/document-types", label: "Document types" },
   itemColumns: [
     { key: "code", label: "Code" },
     { key: "description", label: "Description" },

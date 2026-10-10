@@ -17,10 +17,19 @@ make dev         # api on :8000, web on :3000
 - `api/domain/record.py` — map the schema to `{ fields, items, meta }`.
 - `frontend/app/page.tsx` — the `DomainConfig` (item columns, checks, tabs).
 
+## What ships out of the box
+
+- `/document-types` — manage document categories and review the saved
+  documents in each. Types start empty; define them in the UI. The listing
+  matches stored records by `doc_type` / `type_label`, so keep those fields on
+  the schema. Backend: `api/routers/document_types.py` (`/document-types/*`).
+- Tests: `cd api && pytest tests/`.
+
 See `AGENTS.md` for the checklist, and `../..` for the engine + UI.
 
 ## Database (optional)
 
 The engine's cache, corrections, and source-Document store are DB/file backed.
-Set `DATABASE_URL` in `api/.env` and run `make migrate`. Without it, the app
-still runs with no-op stores.
+Copy `api/.env.example` to `api/.env`, set `DATABASE_URL`, and run `make migrate`
+(or just `make dev` — the `env` target creates the tables if they do not exist).
+Without it, the app still runs with no-op stores.

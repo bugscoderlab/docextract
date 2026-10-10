@@ -13,13 +13,16 @@ load_dotenv()  # this app's .env
 import docextract.cache_sqlmodel  # noqa: E402,F401 — register the engine tables
 import docextract.corrections_sqlmodel  # noqa: E402,F401
 from domain.wire import create_router  # noqa: E402
+from routers.document_types import create_document_types_router  # noqa: E402
 
 
 def _engine():
     from sqlmodel import create_engine
 
-    return create_engine(os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/app"))
+    return create_engine(os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:password@localhost:5432/app"))
 
+
+engine = _engine()
 
 app = FastAPI()
 origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()]
@@ -31,7 +34,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(create_router(_engine()))
+app.include_router(create_router(engine))
+app.include_router(create_document_types_router(engine))
 
 
 @app.get("/health")

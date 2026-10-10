@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import "@docextract/ui/styles.css";
+
 export const metadata: Metadata = { title: "Docextract" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

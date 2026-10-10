@@ -36,6 +36,8 @@ export type Labels = {
 export type DomainConfig = {
   /** Base URL of the domain's extraction API (e.g. http://localhost:8000). */
   apiBaseUrl: string;
+  /** Optional header nav link to a companion page (e.g. document types). */
+  navLink?: { href: string; label: string };
   /** Short engine label for the header pill; falls back to `/extract/config`. */
   engineLabel?: string;
   /** Actor credited on a revision. Default "operator". */

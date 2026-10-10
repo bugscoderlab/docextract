@@ -398,10 +398,16 @@ export default function ReviewShell({ domain }: { domain: DomainConfig }) {
     ? `${api}/extract/documents/${current.sourceHash}`
     : ((current?.record?.meta?.preview as string | undefined) ?? null);
 
-  const itemColumns = useMemo(
-    () => domain.itemColumns ?? deriveColumns(draft?.items[0]),
-    [domain.itemColumns, draft],
-  );
+  const itemColumns = useMemo(() => {
+    const configured = domain.itemColumns ?? deriveColumns(draft?.items[0]);
+    const items = draft?.items ?? [];
+    if (items.length === 0) return configured; // nothing to judge against; keep the layout
+    // Hide columns that carry no value in any current row (e.g. price columns
+    // on an unpriced cutlist) so the table shows only what the document uses.
+    return configured.filter((column) =>
+      items.some((item) => item[column.key] !== undefined && item[column.key] !== null && item[column.key] !== ""),
+    );
+  }, [domain.itemColumns, draft]);
 
   const patchItem = (index: number, changes: Record<string, unknown>) =>
     setDraft((d) => {
@@ -431,6 +437,11 @@ export default function ReviewShell({ domain }: { domain: DomainConfig }) {
           </div>
         </div>
         <div className="hdr-right">
+          {domain.navLink && (
+            <a className="btn-ghost hdr-link" href={domain.navLink.href}>
+              {domain.navLink.label}
+            </a>
+          )}
           <EnginePill apiBaseUrl={api} label={domain.engineLabel} />
         </div>
       </header>
