@@ -70,6 +70,20 @@ from docextract.migrations import version_locations
 config.set_main_option("version_locations", version_locations())
 ```
 
+## Agent skills
+
+### Issue tracker
+
+Issues live as GitHub issues; use the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical roles, label string equals role name (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
 ## OCR (future)
 
 `loaders.py` is the seam for a future OCR step: it turns source bytes into
